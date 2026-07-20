@@ -1,0 +1,40 @@
+body{
+  background-color:#1e2b48;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+h1{
+    color:white;
+}
+nav {
+  background-color: black;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+
+  align-items: center;
+  position: sticky;
+  top: 0
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+ul li a {
+  text-decoration: none;
+  color: white;
+  
+}
+
+ul li a:hover {
+  color: #00ffff;
+}
