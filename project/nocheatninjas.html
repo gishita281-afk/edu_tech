@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioShield AI — Behavior is the strongest password.</title>
+<meta name="description" content="AI-powered anti-cheat for online games. Detects cheaters, bots, and account sharing using behavioral biometrics.">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- AOS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.1/aos.css">
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          base: '#0B1120',
+          surface: '#111827',
+          card: '#1E293B',
+          neon: '#38BDF8',
+          violet: '#A855F7',
+          cyan: '#22D3EE',
+          okgreen: '#34D399',
+          alert: '#FB7185',
+        },
+        fontFamily: {
+          display: ['Space Grotesk','sans-serif'],
+          body: ['Inter','sans-serif'],
+          mono: ['JetBrains Mono','monospace'],
+        },
+      }
+    }
+  }
+</script>
+
+<style>
+  * { scroll-behavior: smooth; }
+  body {
+    background: #0B1120;
+    color: #E2E8F0;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #0B1120; }
+  ::-webkit-scrollbar-thumb { background: linear-gradient(#38BDF8,#A855F7); border-radius: 4px; }
+
+  .glass {
+    background: rgba(30, 41, 59, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .glass-strong {
+    background: rgba(17, 24, 39, 0.7);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .text-gradient {
+    background: linear-gradient(90deg, #38BDF8 0%, #A855F7 50%, #22D3EE 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(56,189,248,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56,189,248,0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .glow-btn {
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(56,189,248,0.35), 0 0 40px rgba(168,85,247,0.15);
+    transition: box-shadow .35s ease, transform .35s ease;
+  }
+  .glow-btn:hover {
+    box-shadow: 0 0 30px rgba(56,189,248,0.6), 0 0 60px rgba(168,85,247,0.35);
+    transform: translateY(-2px);
+  }
+  .card-hover {
+    transition: transform .4s cubic-bezier(.2,.8,.2,1), border-color .4s ease, box-shadow .4s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-8px);
+    border-color: rgba(56,189,248,0.4);
+    box-shadow: 0 20px 40px -20px rgba(56,189,248,0.35);
+  }
+  .float { animation: floatY 6s ease-in-out infinite; }
+  .float-delay { animation: floatY 6s ease-in-out infinite; animation-delay: 2s; }
+  .float-delay2 { animation: floatY 7s ease-in-out infinite; animation-delay: 1s; }
+  @keyframes floatY {
+    0%,100% { transform: translateY(0px); }
+    50% { transform: translateY(-14px); }
+  }
+  .pulse-dot {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
+    animation: pulseDot 2s infinite;
+  }
+  @keyframes pulseDot {
+    0% { box-shadow: 0 0 0 0 rgba(52,211,153,.6); }
+    70% { box-shadow: 0 0 0 10px rgba(52,211,153,0); }
+    100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+  }
+  .waveform-line {
+    stroke-dasharray: 1400;
+    stroke-dashoffset: 1400;
+    animation: drawLine 3.5s ease-out forwards, waveMove 3.2s ease-in-out infinite 3.5s;
+  }
+  @keyframes drawLine { to { stroke-dashoffset: 0; } }
+  @keyframes waveMove {
+    0%,100% { transform: translateX(0); }
+    50% { transform: translateX(-14px); }
+  }
+  .typed-cursor {
+    border-right: 2px solid #38BDF8;
+    animation: blink 0.9s step-end infinite;
+  }
+  @keyframes blink { 50% { border-color: transparent; } }
+
+  .accordion-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .5s ease, padding .3s ease;
+  }
+  .accordion-item.open .accordion-body {
+    max-height: 400px;
+  }
+  .accordion-item.open .chev { transform: rotate(180deg); }
+  .chev { transition: transform .35s ease; }
+
+  input:focus, textarea:focus { outline: none; }
+
+  .nav-link { position: relative; }
+  .nav-link::after {
+    content: ''; position: absolute; left: 0; bottom: -4px; width: 0; height: 1px;
+    background: linear-gradient(90deg,#38BDF8,#A855F7);
+    transition: width .3s ease;
+  }
+  .nav-link:hover::after { width: 100%; }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: .18em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body class="antialiased">
+
+<!-- ================= NAV ================= -->
+<nav id="mainNav" class="fixed top-0 left-0 w-full z-50 transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10 py-4 flex items-center justify-between glass-strong rounded-b-2xl lg:rounded-2xl lg:mt-3">
+    <a href="#home" class="flex items-center gap-2 font-display font-bold text-lg">
+      <span class="relative flex h-3 w-3">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon opacity-60"></span>
+        <span class="relative inline-flex rounded-full h-3 w-3 bg-neon"></span>
+      </span>
+      BioShield<span class="text-gradient">AI</span>
+    </a>
+    <div class="hidden lg:flex items-center gap-8 text-sm text-slate-300 font-medium">
+      <a href="#features" class="nav-link">Features</a>
+      <a href="#how" class="nav-link">How it Works</a>
+      <a href="#dashboard" class="nav-link">Dashboard</a>
+      <a href="#architecture" class="nav-link">Architecture</a>
+      <a href="#compare" class="nav-link">Compare</a>
+      <a href="#faq" class="nav-link">FAQ</a>
+      <a href="#team" class="nav-link">Team</a>
+    </div>
+    <a href="#demo" class="hidden sm:inline-flex items-center gap-2 glow-btn bg-gradient-to-r from-neon to-violet text-slate-950 font-semibold text-sm px-5 py-2.5 rounded-full">
+      <i class="fa-solid fa-shield-halved"></i> Try Demo
+    </a>
+    <button id="menuBtn" class="lg:hidden text-xl"><i class="fa-solid fa-bars"></i></button>
+  </div>
+</nav>
+
+<!-- Mobile Menu -->
+<div id="mobileMenu" class="fixed inset-0 z-40 bg-base/95 backdrop-blur-lg hidden flex-col items-center justify-center gap-8 text-xl font-display">
+  <a href="#features" class="mobile-link">Features</a>
+  <a href="#how" class="mobile-link">How it Works</a>
+  <a href="#dashboard" class="mobile-link">Dashboard</a>
+  <a href="#architecture" class="mobile-link">Architecture</a>
+  <a href="#compare" class="mobile-link">Compare</a>
+  <a href="#faq" class="mobile-link">FAQ</a>
+  <a href="#team" class="mobile-link">Team</a>
+  <a href="#contact" class="mobile-link">Contact</a>
+</div>
+
+<!-- ================= HERO ================= -->
+<section id="home" class="relative min-h-screen flex items-center pt-32 pb-20 grid-bg overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-24 left-10 w-72 h-72 bg-neon/20 rounded-full blur-[100px] float"></div>
+    <div class="absolute bottom-10 right-10 w-96 h-96 bg-violet/20 rounded-full blur-[120px] float-delay"></div>
+    <div class="absolute top-1/2 left-1/2 w-80 h-80 bg-cyan/10 rounded-full blur-[110px] float-delay2"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-6 lg:px-10 w-full grid lg:grid-cols-2 gap-16 items-center relative z-10">
+    <div data-aos="fade-up">
+      <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 text-xs eyebrow text-cyan mb-6">
+        <span class="w-2 h-2 rounded-full bg-okgreen pulse-dot"></span>
+        LIVE_MODEL :: v2.4 // BEHAVIORAL_ENGINE
+      </div>
+      <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.08] mb-6">
+        AI Anti-Cheat Using <span class="text-gradient">Behavioral Biometrics</span>
+      </h1>
+      <p class="text-slate-400 text-lg mb-4 max-w-xl">
+        Detect cheaters, bots, and account sharing using AI-powered gameplay behavior analysis.
+      </p>
+      <p id="typedTagline" class="font-mono text-cyan text-base mb-10"></p>
+
+      <div class="flex flex-wrap gap-4 mb-14">
+        <a href="#demo" class="glow-btn inline-flex items-center gap-2 bg-gradient-to-r from-neon to-violet text-slate-950 font-semibold px-7 py-3.5 rounded-full">
+          <i class="fa-solid fa-play"></i> Try Demo
+        </a>
+        <a href="#features" class="inline-flex items-center gap-2 glass rounded-full px-7 py-3.5 font-semibold hover:border-neon/50 border border-transparent transition">
+          Learn More <i class="fa-solid fa-arrow-right text-sm"></i>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-3 gap-6 max-w-lg">
+        <div>
+          <p class="font-mono text-3xl font-bold text-gradient" data-counter="99.2" data-suffix="%">0%</p>
+          <p class="text-xs text-slate-500 mt-1 eyebrow">DETECTION ACCURACY</p>
+        </div>
+        <div>
+          <p class="font-mono text-3xl font-bold text-gradient" data-counter="0.3" data-suffix="%">0%</p>
+          <p class="text-xs text-slate-500 mt-1 eyebrow">FALSE POSITIVES</p>
+        </div>
+        <div>
+          <p class="font-mono text-3xl font-bold text-gradient" data-counter="1" data-suffix="M+">0</p>
+          <p class="text-xs text-slate-500 mt-1 eyebrow">EVENTS PROCESSED</p>
+        </div>
+      </div>
+    </div>
+
+    <div data-aos="fade-left" data-aos-delay="150" class="relative">
+      <div class="glass-strong rounded-3xl p-6 relative">
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-mono text-xs text-slate-400">SESSION_BIOMETRIC_READOUT.LIVE</span>
+          <span class="flex items-center gap-1.5 text-xs text-okgreen font-mono"><span class="w-1.5 h-1.5 bg-okgreen rounded-full pulse-dot"></span>REC</span>
+        </div>
+        <svg viewBox="0 0 500 160" class="w-full h-40">
+          <defs>
+            <linearGradient id="waveGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#38BDF8"/>
+              <stop offset="50%" stop-color="#A855F7"/>
+              <stop offset="100%" stop-color="#22D3EE"/>
+            </linearGradient>
+          </defs>
+          <path class="waveform-line" d="M0,80 L30,80 L45,40 L60,120 L75,20 L90,140 L105,80 L140,80 L155,60 L170,100 L185,80 L220,80 L235,30 L250,130 L265,80 L300,80 L315,55 L330,105 L345,80 L380,80 L395,45 L410,115 L425,80 L460,80 L475,65 L490,95 L500,80"
+            fill="none" stroke="url(#waveGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="grid grid-cols-3 gap-4 mt-2 text-center">
+          <div class="glass rounded-xl py-3">
+            <p class="font-mono text-lg font-bold text-neon">97.4%</p>
+            <p class="text-[10px] text-slate-500 mt-1">IDENTITY MATCH</p>
+          </div>
+          <div class="glass rounded-xl py-3">
+            <p class="font-mono text-lg font-bold text-okgreen">LOW</p>
+            <p class="text-[10px] text-slate-500 mt-1">RISK SCORE</p>
+          </div>
+          <div class="glass rounded-xl py-3">
+            <p class="font-mono text-lg font-bold text-violet">VERIFIED</p>
+            <p class="text-[10px] text-slate-500 mt-1">STATUS</p>
+          </div>
+        </div>
+      </div>
+      <div class="absolute -top-6 -right-6 glass rounded-2xl px-4 py-3 float hidden md:block">
+        <i class="fa-solid fa-crosshairs text-cyan"></i>
+        <p class="text-[10px] font-mono text-slate-400 mt-1">AIM_ACCURACY: 91%</p>
+      </div>
+      <div class="absolute -bottom-6 -left-6 glass rounded-2xl px-4 py-3 float-delay hidden md:block">
+        <i class="fa-solid fa-keyboard text-violet"></i>
+        <p class="text-[10px] font-mono text-slate-400 mt-1">KEY_CADENCE: STABLE</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FEATURES ================= -->
+<section id="features" class="py-28 px-6 lg:px-10 relative">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16" data-aos="fade-up">
+      <p class="eyebrow text-cyan text-xs mb-3">// CAPABILITIES</p>
+      <h2 class="font-display text-3xl sm:text-4xl font-bold">Everything you need to <span class="text-gradient">stop cheaters</span></h2>
+      <p class="text-slate-400 mt-4 max-w-2xl mx-auto">One behavioral engine, eight ways it protects your game.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Feature cards -->
+      <div class="glass card-hover rounded-2xl p-6" data-aos="fade-up" data-aos-delay="0">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-neon/20 to-neon/5 flex items-center justify-center mb-5"><i class="fa-solid fa-brain text-neon text-lg"></i></div>
+        <h3 class="font-display font-semibold text-lg mb-2">AI Behavioral Learning</h3>
+        <p class="text-slate-400 text-sm">Builds a unique behavioral fingerprint for every player from thousands of micro-signals.</p>
+      </div>
+      <div class="glass card-hover rounded-2xl p-6" data-aos="fade-up" data-aos-delay="50">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet/20 to-violet/5 flex items-center justify-center mb-5"><i class="fa-solid fa-fingerprint text-violet text-lg"></i></div>
+        <h3 class="font-display font-semibold text-lg mb-2">Gameplay Biometrics</h3>
+        <p class="text-slate-400 text-sm">Mouse motion, keystroke rhythm, and reaction time treated as a biometric signature.</p>
+      </div>
+      <div class="glass card-hover rounded-2xl p-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan/20 to-cyan/5 flex items-center justify-center mb-5"><i class="fa-solid fa-bolt text-cyan text-lg"></i></div>
+        <h3 class="font-display font-semibold text-lg mb-2">Real-time Detection</h3>
+        <p class="text-slate-400 text-sm">Behavior is scored continuously during a session, not just checked at login.</p>
+      </div>
+      <div class="glass card-hover rounded-2xl p-6" data-aos="fade-up" data-aos-delay="150">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-alert/20 to-alert/5 flex items-center justify-center mb-5"><i class="fa-solid fa-user-group text-alert text-lg"></i></div>
+        <h3 class="font-display font-semibold text-lg mb-2">Account Sharing Detection</h3>
+        <p class="text-slate-400 text-sm">Flags a sudden shift in behavior that suggests a different person is playing.</p>
+      </div>
+      <div class="glass card-hover rounded-2xl p-6" data-aos="fade-up" data-aos-delay="0">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-neon/20 to-neon/5 flex items-center justify-center mb-5"><i class="fa-solid fa-robot text-neon text-lg"></i></div>
+        <h3 class="font-display font-semibold text-lg mb-2">Bot Detection</h3>
+        <p class="text-slate-400 text-sm">Spots the inhuman precision and timing patterns that give automated play away.</p>
+      </div>
+      <div class="glass card-hover rounded-2xl p-6" data-aos="fade-up" data-aos-delay="50">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet/20 to-violet/5 flex items-center justify-center mb-5"><i class="fa-solid fa-lock text-violet text-lg"></i></div>
+        <h3 class="font-display font-semibold text-lg mb-2">Privacy First</h3>
+        <p class="text-slate-400 text-sm">Only interaction patterns are analyzed — no hardware scans, no personal files.</p>
+      </div>
+      <div class="glass card-hover rounded-2xl p-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan/20 to-cyan/5 flex items-center justify-center mb-5"><i class="fa-solid fa-cloud text-cyan text-lg"></i></div>
+        <h3 class="font-display font-semibold text-lg mb-2">Cloud Ready</h3>
+        <p class="text-slate-400 text-sm">Scales horizontally to score millions of concurrent sessions in production.</p>
+      </div>
+      <div class="glass card-hover rounded-2xl p-6" data-aos="fade-up" data-aos-delay="150">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-alert/20 to-alert/5 flex items-center justify-center mb-5"><i class="fa-solid fa-plug text-alert text-lg"></i></div>
+        <h3 class="font-display font-semibold text-lg mb-2">Easy Integration</h3>
+        <p class="text-slate-400 text-sm">A lightweight SDK drops into existing game clients in an afternoon.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HOW IT WORKS ================= -->
+<section id="how" class="py-28 px-6 lg:px-10 relative bg-surface/40">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-20" data-aos="fade-up">
+      <p class="eyebrow text-cyan text-xs mb-3">// PIPELINE</p>
+      <h2 class="font-display text-3xl sm:text-4xl font-bold">How <span class="text-gradient">BioShield AI</span> thinks</h2>
+      <p class="text-slate-400 mt-4 max-w-2xl mx-auto">Every session moves through the same six-stage pipeline before a verdict is reached.</p>
+    </div>
+
+    <div class="relative">
+      <div class="hidden lg:block absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-gradient-to-b from-neon via-violet to-cyan opacity-30"></div>
+      <div class="space-y-10 lg:space-y-16">
+        <!-- step template -->
+        <div class="lg:grid lg:grid-cols-2 lg:gap-16 items-center" data-aos="fade-right">
+          <div class="lg:text-right lg:pr-14">
+            <span class="eyebrow text-xs text-neon">STEP_01 :: DATA_INGEST</span>
+            <h3 class="font-display text-xl font-semibold mt-2 mb-2">Gameplay Data</h3>
+            <p class="text-slate-400 text-sm">Raw input streams — mouse, keyboard, camera, weapon events — are captured client-side.</p>
+          </div>
+          <div class="hidden lg:block"></div>
+        </div>
+        <div class="lg:grid lg:grid-cols-2 lg:gap-16 items-center" data-aos="fade-left">
+          <div class="hidden lg:block"></div>
+          <div class="lg:pl-14">
+            <span class="eyebrow text-xs text-violet">STEP_02 :: EXTRACTION</span>
+            <h3 class="font-display text-xl font-semibold mt-2 mb-2">Feature Extraction</h3>
+            <p class="text-slate-400 text-sm">Raw streams are converted into hundreds of quantitative behavioral features.</p>
+          </div>
+        </div>
+        <div class="lg:grid lg:grid-cols-2 lg:gap-16 items-center" data-aos="fade-right">
+          <div class="lg:text-right lg:pr-14">
+            <span class="eyebrow text-xs text-cyan">STEP_03 :: INFERENCE</span>
+            <h3 class="font-display text-xl font-semibold mt-2 mb-2">AI Model</h3>
+            <p class="text-slate-400 text-sm">A neural network scores the session against learned human behavior patterns.</p>
+          </div>
+          <div class="hidden lg:block"></div>
+        </div>
+        <div class="lg:grid lg:grid-cols-2 lg:gap-16 items-center" data-aos="fade-left">
+          <div class="hidden lg:block"></div>
+          <div class="lg:pl-14">
+            <span class="eyebrow text-xs text-neon">STEP_04 :: PROFILING</span>
+            <h3 class="font-display text-xl font-semibold mt-2 mb-2">Behavioral Profile</h3>
+            <p class="text-slate-400 text-sm">Features are compressed into a persistent profile unique to that player.</p>
+          </div>
+        </div>
+        <div class="lg:grid lg:grid-cols-2 lg:gap-16 items-center" data-aos="fade-right">
+          <div class="lg:text-right lg:pr-14">
+            <span class="eyebrow text-xs text-violet">STEP_05 :: SCORING</span>
+            <h3 class="font-display text-xl font-semibold mt-2 mb-2">Risk Analysis</h3>
+            <p class="text-slate-400 text-sm">Deviation from the profile is converted into a live, explainable risk score.</p>
+          </div>
+          <div class="hidden lg:block"></div>
+        </div>
+        <div class="lg:grid lg:grid-cols-2 lg:gap-16 items-center" data-aos="fade-left">
+          <div class="hidden lg:block"></div>
+          <div class="lg:pl-14">
+            <span class="eyebrow text-xs text-cyan">STEP_06 :: VERDICT</span>
+            <h3 class="font-display text-xl font-semibold mt-2 mb-2">Decision Engine</h3>
+            <p class="text-slate-400 text-sm">The engine routes the session to one of four outcomes below.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-20" data-aos="fade-up">
+      <div class="glass rounded-2xl p-5 text-center border-l-4 border-okgreen">
+        <i class="fa-solid fa-circle-check text-okgreen text-2xl mb-3"></i>
+        <p class="font-mono text-sm font-semibold">VERIFIED PLAYER</p>
+      </div>
+      <div class="glass rounded-2xl p-5 text-center border-l-4 border-cyan">
+        <i class="fa-solid fa-robot text-cyan text-2xl mb-3"></i>
+        <p class="font-mono text-sm font-semibold">BOT</p>
+      </div>
+      <div class="glass rounded-2xl p-5 text-center border-l-4 border-alert">
+        <i class="fa-solid fa-user-secret text-alert text-2xl mb-3"></i>
+        <p class="font-mono text-sm font-semibold">CHEATER</p>
+      </div>
+      <div class="glass rounded-2xl p-5 text-center border-l-4 border-violet">
+        <i class="fa-solid fa-people-arrows text-violet text-2xl mb-3"></i>
+        <p class="font-mono text-sm font-semibold">ACCOUNT SHARING</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LIVE DASHBOARD ================= -->
+<section id="dashboard" class="py-28 px-6 lg:px-10 relative">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-14" data-aos="fade-up">
+      <p class="eyebrow text-cyan text-xs mb-3">// LIVE_MONITORING</p>
+      <h2 class="font-display text-3xl sm:text-4xl font-bold">Live AI <span class="text-gradient">Dashboard</span></h2>
+      <p class="text-slate-400 mt-4 max-w-2xl mx-auto">A real-time view of what the engine sees for a single session.</p>
+    </div>
+
+    <div class="grid lg:grid-cols-4 gap-5 mb-8" data-aos="fade-up">
+      <div class="glass rounded-2xl p-5">
+        <p class="text-xs text-slate-500 eyebrow mb-1">PLAYER ID</p>
+        <p class="font-mono text-lg font-bold text-white">PLR-88214</p>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <p class="text-xs text-slate-500 eyebrow mb-1">IDENTITY MATCH</p>
+        <p class="font-mono text-lg font-bold text-neon" data-counter="97.4" data-suffix="%">0%</p>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <p class="text-xs text-slate-500 eyebrow mb-1">RISK SCORE</p>
+        <p class="font-mono text-lg font-bold text-okgreen" data-counter="12" data-suffix="/100">0</p>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <p class="text-xs text-slate-500 eyebrow mb-1">AI CONFIDENCE</p>
+        <p class="font-mono text-lg font-bold text-cyan" data-counter="98.6" data-suffix="%">0%</p>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <p class="text-xs text-slate-500 eyebrow mb-1">BOT PROBABILITY</p>
+        <p class="font-mono text-lg font-bold text-violet" data-counter="1.8" data-suffix="%">0%</p>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <p class="text-xs text-slate-500 eyebrow mb-1">CHEAT PROBABILITY</p>
+        <p class="font-mono text-lg font-bold text-alert" data-counter="2.4" data-suffix="%">0%</p>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <p class="text-xs text-slate-500 eyebrow mb-1">SESSION TIME</p>
+        <p class="font-mono text-lg font-bold text-white">42:17</p>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <p class="text-xs text-slate-500 eyebrow mb-1">STATUS</p>
+        <p class="font-mono text-lg font-bold text-okgreen flex items-center gap-2"><span class="w-2 h-2 bg-okgreen rounded-full pulse-dot"></span>VERIFIED</p>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-5">
+      <div class="glass rounded-2xl p-5" data-aos="fade-up">
+        <p class="text-sm font-semibold mb-3">Risk Score Over Time</p>
+        <canvas id="riskChart" height="180"></canvas>
+      </div>
+      <div class="glass rounded-2xl p-5" data-aos="fade-up" data-aos-delay="50">
+        <p class="text-sm font-semibold mb-3">Mouse Movement Variance</p>
+        <canvas id="mouseChart" height="180"></canvas>
+      </div>
+      <div class="glass rounded-2xl p-5" data-aos="fade-up">
+        <p class="text-sm font-semibold mb-3">Reaction Time (ms)</p>
+        <canvas id="reactionChart" height="180"></canvas>
+      </div>
+      <div class="glass rounded-2xl p-5" data-aos="fade-up" data-aos-delay="50">
+        <p class="text-sm font-semibold mb-3">Aim Accuracy</p>
+        <canvas id="aimChart" height="180"></canvas>
+      </div>
+      <div class="glass rounded-2xl p-5 lg:col-span-2" data-aos="fade-up">
+        <p class="text-sm font-semibold mb-3">Player Behavior Timeline</p>
+        <canvas id="timelineChart" height="120"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ARCHITECTURE ================= -->
+<section id="architecture" class="py-28 px-6 lg:px-10 relative bg-surface/40">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-16" data-aos="fade-up">
+      <p class="eyebrow text-cyan text-xs mb-3">// SYSTEM_DESIGN</p>
+      <h2 class="font-display text-3xl sm:text-4xl font-bold">AI <span class="text-gradient">Architecture</span></h2>
+      <p class="text-slate-400 mt-4 max-w-2xl mx-auto">Six layers, from raw input to the dashboard you just saw.</p>
+    </div>
+
+    <div class="grid gap-4">
+      <div class="arch-node glass rounded-2xl p-5 flex items-center gap-5 card-hover" data-aos="zoom-in">
+        <div class="w-11 h-11 rounded-xl bg-neon/15 flex items-center justify-center shrink-0"><i class="fa-solid fa-gamepad text-neon"></i></div>
+        <div><p class="font-semibold">Input Layer</p><p class="text-slate-400 text-sm">Mouse, keyboard, camera, and weapon events from the game client.</p></div>
+      </div>
+      <div class="flex justify-center"><i class="fa-solid fa-chevron-down text-slate-600"></i></div>
+      <div class="arch-node glass rounded-2xl p-5 flex items-center gap-5 card-hover" data-aos="zoom-in">
+        <div class="w-11 h-11 rounded-xl bg-violet/15 flex items-center justify-center shrink-0"><i class="fa-solid fa-database text-violet"></i></div>
+        <div><p class="font-semibold">Data Collection</p><p class="text-slate-400 text-sm">Events are timestamped, batched, and streamed to the backend.</p></div>
+      </div>
+      <div class="flex justify-center"><i class="fa-solid fa-chevron-down text-slate-600"></i></div>
+      <div class="arch-node glass rounded-2xl p-5 flex items-center gap-5 card-hover" data-aos="zoom-in">
+        <div class="w-11 h-11 rounded-xl bg-cyan/15 flex items-center justify-center shrink-0"><i class="fa-solid fa-diagram-project text-cyan"></i></div>
+        <div><p class="font-semibold">Feature Engineering</p><p class="text-slate-400 text-sm">Hundreds of behavioral signals are derived from raw event streams.</p></div>
+      </div>
+      <div class="flex justify-center"><i class="fa-solid fa-chevron-down text-slate-600"></i></div>
+      <div class="arch-node glass rounded-2xl p-5 flex items-center gap-5 card-hover" data-aos="zoom-in">
+        <div class="w-11 h-11 rounded-xl bg-neon/15 flex items-center justify-center shrink-0"><i class="fa-solid fa-network-wired text-neon"></i></div>
+        <div><p class="font-semibold">Neural Network</p><p class="text-slate-400 text-sm">Scores session features against each player's learned baseline.</p></div>
+      </div>
+      <div class="flex justify-center"><i class="fa-solid fa-chevron-down text-slate-600"></i></div>
+      <div class="arch-node glass rounded-2xl p-5 flex items-center gap-5 card-hover" data-aos="zoom-in">
+        <div class="w-11 h-11 rounded-xl bg-alert/15 flex items-center justify-center shrink-0"><i class="fa-solid fa-scale-balanced text-alert"></i></div>
+        <div><p class="font-semibold">Decision Layer</p><p class="text-slate-400 text-sm">Converts model output into a verdict with a confidence score.</p></div>
+      </div>
+      <div class="flex justify-center"><i class="fa-solid fa-chevron-down text-slate-600"></i></div>
+      <div class="arch-node glass rounded-2xl p-5 flex items-center gap-5 card-hover" data-aos="zoom-in">
+        <div class="w-11 h-11 rounded-xl bg-violet/15 flex items-center justify-center shrink-0"><i class="fa-solid fa-chart-line text-violet"></i></div>
+        <div><p class="font-semibold">Dashboard</p><p class="text-slate-400 text-sm">Studios review verdicts, trends, and evidence in real time.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= COMPARISON ================= -->
+<section id="compare" class="py-28 px-6 lg:px-10 relative">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-14" data-aos="fade-up">
+      <p class="eyebrow text-cyan text-xs mb-3">// BENCHMARK</p>
+      <h2 class="font-display text-3xl sm:text-4xl font-bold">Traditional Anti-Cheat <span class="text-slate-500">vs</span> <span class="text-gradient">BioShield AI</span></h2>
+    </div>
+
+    <div class="glass-strong rounded-2xl overflow-hidden" data-aos="fade-up">
+      <div class="grid grid-cols-3 text-sm">
+        <div class="p-5 font-display font-semibold text-slate-400">Criteria</div>
+        <div class="p-5 font-display font-semibold text-center border-x border-slate-700/40">Traditional</div>
+        <div class="p-5 font-display font-semibold text-center text-gradient">BioShield AI</div>
+
+        <div class="p-5 border-t border-slate-700/40 text-slate-400">Hardware Scan</div>
+        <div class="p-5 border-t border-x border-slate-700/40 text-center"><i class="fa-solid fa-check text-slate-500"></i></div>
+        <div class="p-5 border-t border-slate-700/40 text-center"><i class="fa-solid fa-xmark text-slate-600"></i></div>
+
+        <div class="p-5 border-t border-slate-700/40 text-slate-400">Behavior Detection</div>
+        <div class="p-5 border-t border-x border-slate-700/40 text-center"><i class="fa-solid fa-xmark text-slate-600"></i></div>
+        <div class="p-5 border-t border-slate-700/40 text-center"><i class="fa-solid fa-check text-okgreen"></i></div>
+
+        <div class="p-5 border-t border-slate-700/40 text-slate-400">Privacy</div>
+        <div class="p-5 border-t border-x border-slate-700/40 text-center text-alert text-xs font-mono">INVASIVE</div>
+        <div class="p-5 border-t border-slate-700/40 text-center text-okgreen text-xs font-mono">RESPECTFUL</div>
+
+        <div class="p-5 border-t border-slate-700/40 text-slate-400">Accuracy</div>
+        <div class="p-5 border-t border-x border-slate-700/40 text-center text-xs font-mono">~78%</div>
+        <div class="p-5 border-t border-slate-700/40 text-center text-xs font-mono text-neon">99.2%</div>
+
+        <div class="p-5 border-t border-slate-700/40 text-slate-400">Bypass Resistance</div>
+        <div class="p-5 border-t border-x border-slate-700/40 text-center text-xs font-mono">LOW</div>
+        <div class="p-5 border-t border-slate-700/40 text-center text-xs font-mono text-neon">HIGH</div>
+
+        <div class="p-5 border-t border-slate-700/40 text-slate-400">Continuous Learning</div>
+        <div class="p-5 border-t border-x border-slate-700/40 text-center"><i class="fa-solid fa-xmark text-slate-600"></i></div>
+        <div class="p-5 border-t border-slate-700/40 text-center"><i class="fa-solid fa-check text-okgreen"></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DEMO ================= -->
+<section id="demo" class="py-28 px-6 lg:px-10 relative bg-surface/40">
+  <div class="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+    <div data-aos="fade-right">
+      <p class="eyebrow text-cyan text-xs mb-3">// DEMO</p>
+      <h2 class="font-display text-3xl sm:text-4xl font-bold mb-5">Watch the engine <span class="text-gradient">think</span></h2>
+      <p class="text-slate-400 mb-8">A sample gameplay clip scored live. The panel on the right updates as new behavioral evidence arrives — this is a simulated preview for the hackathon build.</p>
+      <div class="relative rounded-2xl overflow-hidden glass aspect-video">
+    <video
+        controls
+        autoplay
+        muted
+        loop
+        class="w-full h-full object-cover rounded-2xl">
+
+        <source src="gameplay.mp4" type="video/mp4">
+
+        Your browser does not support the video tag.
+    </video>
+</div>
+    </div>
+    <div data-aos="fade-left">
+      <div class="glass-strong rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-5">
+          <span class="font-mono text-xs text-slate-400">AI_PREDICTION_PANEL</span>
+          <span class="flex items-center gap-1.5 text-xs text-okgreen font-mono"><span class="w-1.5 h-1.5 bg-okgreen rounded-full pulse-dot"></span>ANALYZING</span>
+        </div>
+        <div id="demoLog" class="font-mono text-xs sm:text-sm space-y-2 h-64 overflow-hidden text-slate-400"></div>
+        <div class="grid grid-cols-2 gap-4 mt-6">
+          <div class="glass rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold font-mono text-okgreen">VERIFIED</p>
+            <p class="text-[10px] text-slate-500 mt-1">FINAL VERDICT</p>
+          </div>
+          <div class="glass rounded-xl p-4 text-center">
+            <p class="text-2xl font-bold font-mono text-neon">98.6%</p>
+            <p class="text-[10px] text-slate-500 mt-1">CONFIDENCE</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section id="faq" class="py-28 px-6 lg:px-10 relative">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-center mb-14" data-aos="fade-up">
+      <p class="eyebrow text-cyan text-xs mb-3">// FAQ</p>
+      <h2 class="font-display text-3xl sm:text-4xl font-bold">Questions, answered</h2>
+    </div>
+
+    <div class="space-y-4">
+      <div class="accordion-item glass rounded-2xl overflow-hidden" data-aos="fade-up">
+        <button class="accordion-trigger w-full flex items-center justify-between p-5 text-left font-semibold">
+          How does Behavioral Biometrics work?
+          <i class="fa-solid fa-chevron-down chev text-cyan"></i>
+        </button>
+        <div class="accordion-body px-5 text-slate-400 text-sm">
+          <p class="pb-5">The AI observes patterns in how you move a mouse, press keys, aim, and react, then builds a profile that's uniquely yours. Future sessions are compared against that profile in real time.</p>
+        </div>
+      </div>
+      <div class="accordion-item glass rounded-2xl overflow-hidden" data-aos="fade-up" data-aos-delay="50">
+        <button class="accordion-trigger w-full flex items-center justify-between p-5 text-left font-semibold">
+          Can hackers bypass it?
+          <i class="fa-solid fa-chevron-down chev text-cyan"></i>
+        </button>
+        <div class="accordion-body px-5 text-slate-400 text-sm">
+          <p class="pb-5">Because it learns behavior rather than checking files or hardware, there's no static signature to spoof. Mimicking someone's timing and motion precisely, continuously, is far harder than faking a scan.</p>
+        </div>
+      </div>
+      <div class="accordion-item glass rounded-2xl overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+        <button class="accordion-trigger w-full flex items-center justify-between p-5 text-left font-semibold">
+          Does it collect personal data?
+          <i class="fa-solid fa-chevron-down chev text-cyan"></i>
+        </button>
+        <div class="accordion-body px-5 text-slate-400 text-sm">
+          <p class="pb-5">No. Only interaction patterns like movement and timing are analyzed. There are no hardware scans, file access, or personal identifiers involved.</p>
+        </div>
+      </div>
+      <div class="accordion-item glass rounded-2xl overflow-hidden" data-aos="fade-up" data-aos-delay="150">
+        <button class="accordion-trigger w-full flex items-center justify-between p-5 text-left font-semibold">
+          How accurate is it?
+          <i class="fa-solid fa-chevron-down chev text-cyan"></i>
+        </button>
+        <div class="accordion-body px-5 text-slate-400 text-sm">
+          <p class="pb-5">In our current benchmark, the model reaches 99.2% detection accuracy with a 0.3% false-positive rate across more than one million processed gameplay events.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ckend Developer</p>
+
+<!-- ================= CONTACT ================= -->
+<section id="contact" class="py-28 px-6 lg:px-10 relative">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-center mb-14" data-aos="fade-up">
+      <p class="eyebrow text-cyan text-xs mb-3">// GET IN TOUCH</p>
+      <h2 class="font-display text-3xl sm:text-4xl font-bold">Let's talk <span class="text-gradient">integration</span></h2>
+      <p class="text-slate-400 mt-4">Tell us about your game and we'll get back to you.</p>
+    </div>
+
+    <form id="contactForm" class="glass-strong rounded-2xl p-8 space-y-5" data-aos="fade-up">
+      <div>
+        <label class="text-xs eyebrow text-slate-400 mb-2 block">NAME</label>
+        <input type="text" required placeholder="Your name" class="w-full bg-base/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm focus:border-neon transition placeholder:text-slate-600">
+      </div>
+      <div>
+        <label class="text-xs eyebrow text-slate-400 mb-2 block">EMAIL</label>
+        <input type="email" required placeholder="you@studio.com" class="w-full bg-base/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm focus:border-neon transition placeholder:text-slate-600">
+      </div>
+      <div>
+        <label class="text-xs eyebrow text-slate-400 mb-2 block">MESSAGE</label>
+        <textarea required rows="4" placeholder="Tell us about your project..." class="w-full bg-base/60 border border-slate-700/50 rounded-xl px-4 py-3 text-sm focus:border-neon transition placeholder:text-slate-600 resize-none"></textarea>
+      </div>
+      <button type="submit" class="glow-btn w-full bg-gradient-to-r from-neon to-violet text-slate-950 font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2">
+        <i class="fa-solid fa-paper-plane"></i> <span id="sendBtnText">Send Message</span>
+      </button>
+    </form>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer class="border-t border-slate-800/60 py-12 px-6 lg:px-10">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="flex items-center gap-2 font-display font-bold">
+      <span class="w-2.5 h-2.5 rounded-full bg-neon"></span>
+      BioShield<span class="text-gradient">AI</span>
+    </div>
+    <p class="text-slate-500 text-sm text-center">"Behavior is the strongest password." &copy; Domain: modern online games struggle against cheating,account sharing and bots.it is an AI system which identifies players through their unique gameplay patterns rather than hardware or software checks.
+    </p>
+      <p class="text-slate-500 text-sm text-center">Team:NOCHEAT NINJAS. 
+      ISHITA NAVYA KASHISH. 
+    </p>
+    <div class="flex gap-4 text-slate-400">
+      <a href="#" class="hover:text-neon transition"><i class="fa-brands fa-github"></i></a>
+      <a href="#" class="hover:text-neon transition"><i class="fa-brands fa-x-twitter"></i></a>
+      <a href="#" class="hover:text-neon transition"><i class="fa-brands fa-discord"></i></a>
+      <a href="#" class="hover:text-neon transition"><i class="fa-brands fa-linkedin"></i></a>
+    </div>
+  </div>
+</footer>
+
+<!-- ================= SCRIPTS ================= -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.1/aos.js"></script>
+<script>
+  AOS.init({ duration: 800, once: true, easing: 'ease-out-cubic' });
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* Nav shrink on scroll */
+  const nav = document.getElementById('mainNav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 40) nav.classList.add('shadow-2xl');
+    else nav.classList.remove('shadow-2xl');
+  });
+
+  /* Mobile menu */
+  const menuBtn = document.getElementById('menuBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  menuBtn.addEventListener('click', () => {
+    mobileMenu.classList.toggle('hidden');
+    mobileMenu.classList.toggle('flex');
+  });
+  document.querySelectorAll('.mobile-link').forEach(l => l.addEventListener('click', () => {
+    mobileMenu.classList.add('hidden');
+    mobileMenu.classList.remove('flex');
+  }));
+
+  /* Typing effect for tagline */
+  const tagline = "Behavior is the strongest password.";
+  const typedEl = document.getElementById('typedTagline');
+  let ti = 0;
+  function typeTagline() {
+    if (ti <= tagline.length) {
+      typedEl.textContent = tagline.slice(0, ti);
+      typedEl.classList.add('typed-cursor');
+      ti++;
+      setTimeout(typeTagline, 55);
+    }
+  }
+  typeTagline();
+
+  /* Counter animation using GSAP + Intersection Observer */
+  const counters = document.querySelectorAll('[data-counter]');
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = parseFloat(el.dataset.counter);
+        const suffix = el.dataset.suffix || '';
+        const decimals = (el.dataset.counter.split('.')[1] || '').length;
+        const obj = { val: 0 };
+        gsap.to(obj, {
+          val: target,
+          duration: 2,
+          ease: 'power2.out',
+          onUpdate: () => { el.textContent = obj.val.toFixed(decimals) + suffix; },
+        });
+        counterObserver.unobserve(el);
+      }
+    });
+  }, { threshold: 0.4 });
+  counters.forEach(c => counterObserver.observe(c));
+
+  /* Accordion */
+  document.querySelectorAll('.accordion-trigger').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.closest('.accordion-item');
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
+      if (!wasOpen) item.classList.add('open');
+    });
+  });
+
+  /* Demo log simulation */
+  const demoLog = document.getElementById('demoLog');
+  const logLines = [
+    ['> capturing mouse trajectory...', 'text-slate-400'],
+    ['> keystroke cadence: stable', 'text-cyan'],
+    ['> reaction time: 214ms (baseline: 208ms)', 'text-slate-400'],
+    ['> aim variance: within profile bounds', 'text-okgreen'],
+    ['> weapon-switch pattern: matched', 'text-okgreen'],
+    ['> camera movement: consistent', 'text-cyan'],
+    ['> cross-checking behavioral profile...', 'text-slate-400'],
+    ['> deviation score: 2.1% (LOW)', 'text-okgreen'],
+    ['> verdict: VERIFIED PLAYER', 'text-neon font-semibold'],
+  ];
+  let logIndex = 0;
+  function pushLog() {
+    if (logIndex >= logLines.length) { logIndex = 0; demoLog.innerHTML = ''; }
+    const [text, cls] = logLines[logIndex];
+    const line = document.createElement('div');
+    line.className = cls;
+    line.textContent = text;
+    demoLog.appendChild(line);
+    if (demoLog.children.length > 9) demoLog.removeChild(demoLog.firstChild);
+    logIndex++;
+    setTimeout(pushLog, 1400);
+  }
+  pushLog();
+
+  /* Chart.js global defaults */
+  Chart.defaults.color = '#94A3B8';
+  Chart.defaults.font.family = 'JetBrains Mono';
+  Chart.defaults.borderColor = 'rgba(148,163,184,0.08)';
+
+  const gridOpts = { grid: { color: 'rgba(148,163,184,0.08)' }, ticks: { font: { size: 10 } } };
+
+  new Chart(document.getElementById('riskChart'), {
+    type: 'line',
+    data: {
+      labels: ['0m','5m','10m','15m','20m','25m','30m','35m','40m'],
+      datasets: [{
+        label: 'Risk Score',
+        data: [8,10,9,14,11,13,10,12,12],
+        borderColor: '#34D399',
+        backgroundColor: 'rgba(52,211,153,0.12)',
+        fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2,
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: gridOpts, y: { ...gridOpts, min:0, max: 100 } } }
+  });
+
+  new Chart(document.getElementById('mouseChart'), {
+    type: 'line',
+    data: {
+      labels: Array.from({length:12}, (_,i)=>i),
+      datasets: [{
+        label: 'Mouse Variance',
+        data: [22,30,26,40,35,50,44,38,42,36,46,40],
+        borderColor: '#38BDF8',
+        backgroundColor: 'rgba(56,189,248,0.12)',
+        fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2,
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: gridOpts, y: gridOpts } }
+  });
+
+  new Chart(document.getElementById('reactionChart'), {
+    type: 'bar',
+    data: {
+      labels: ['1','2','3','4','5','6','7','8'],
+      datasets: [{
+        label: 'Reaction (ms)',
+        data: [210,198,224,205,190,215,208,202],
+        backgroundColor: '#A855F7',
+        borderRadius: 6,
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: gridOpts, y: gridOpts } }
+  });
+
+  new Chart(document.getElementById('aimChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Precision','Consistency','Flick','Tracking','Recoil Ctrl','Reaction'],
+      datasets: [{
+        label: 'Aim Profile',
+        data: [88,92,80,85,90,87],
+        borderColor: '#22D3EE',
+        backgroundColor: 'rgba(34,211,238,0.18)',
+        pointBackgroundColor: '#22D3EE',
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } },
+      scales: { r: { angleLines: { color: 'rgba(148,163,184,0.1)' }, grid: { color: 'rgba(148,163,184,0.1)' }, pointLabels: { font: { size: 9 } }, ticks: { display:false } } } }
+  });
+
+  new Chart(document.getElementById('timelineChart'), {
+    type: 'line',
+    data: {
+      labels: Array.from({length: 20}, (_,i)=>i*2 + 'm'),
+      datasets: [
+        { label: 'Verified', data: [95,94,96,95,93,95,96,94,95,93,94,95,96,94,95,93,94,95,96,95], borderColor: '#34D399', borderWidth:2, pointRadius:0, tension:.4 },
+        { label: 'Risk', data: [8,9,8,10,9,11,10,9,12,11,10,9,11,12,10,9,8,10,11,10], borderColor: '#FB7185', borderWidth:2, pointRadius:0, tension:.4 },
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { labels: { boxWidth: 12, font: { size: 10 } } } }, scales: { x: gridOpts, y: gridOpts } }
+  });
+
+  /* Hero waveform ambient float (GSAP) */
+  gsap.to('.waveform-line', { });
+
+</script>
+</body>
+</html>
